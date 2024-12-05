@@ -1,0 +1,6 @@
+name: FFA
+version: "1.1.0"
+api: ["1.1.0"]
+author: Maki
+description: Test
+main: genz.maki.plugins.Main
