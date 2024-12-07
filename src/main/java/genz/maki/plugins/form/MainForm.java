@@ -70,11 +70,9 @@ public class MainForm {
      */
     public void sendProfilFrame(Player player) throws IOException {
         FormWindowSimple profilframe = new FormWindowSimple(ffaConfig.getFormName(), "Here are your profile settings and statistics.");
-        main.getLogger().info(String.valueOf(playerFile.getKills(player)));
-        profilframe.setContent(TextFormat.LIGHT_PURPLE + "Current Kills:" + TextFormat.BLUE + " " + String.valueOf(playerFile.getKills(player)));
-        profilframe.setContent(TextFormat.LIGHT_PURPLE + "Current Deaths:" + TextFormat.BLUE + " " + String.valueOf(playerFile.getDeaths(player)));
+        
         profilframe.setContent(TextFormat.LIGHT_PURPLE + "Current K/D:" + TextFormat.BLUE + " " + playerFile.getKillDeathRatio(player) + "\n"
-            + TextFormat.LIGHT_PURPLE + "Current Kills:" + TextFormat.BLUE + " " + String.valueOf(playerFile.getKills(player))
+            + TextFormat.LIGHT_PURPLE + "Current Kills:" + TextFormat.BLUE + " " + String.valueOf(playerFile.getKills(player) + "\n")
                 + TextFormat.LIGHT_PURPLE + "Current Deaths:" + TextFormat.BLUE + " " + String.valueOf(playerFile.getDeaths(player))
         );
         profilframe.addButton(new ElementButton(TextFormat.RED + "Back"));
