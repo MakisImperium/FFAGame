@@ -16,6 +16,15 @@ public class FFADropItemEvent implements Listener {
         this.config = config;
     }
 
+    /**
+     * Handles the event triggered when a player attempts to drop an item. This event checks
+     * if the player is part of a specific list maintained in the configuration. If so, the
+     * item drop action is canceled.
+     *
+     * @param event The PlayerDropItemEvent containing details of the item drop attempt, including
+     *              a reference to the player who is attempting to drop the item.
+     * @throws IOException If an I/O error occurs while checking the player's membership in the list.
+     */
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) throws IOException {
         Player player = event.getPlayer();

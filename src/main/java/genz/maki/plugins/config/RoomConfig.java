@@ -195,13 +195,13 @@ public class RoomConfig {
      * Checks whether a given player is in the "players-playing" list.
      *
      * @param player The player to check for membership in the "players-playing" list.
-     * @return true if the "players-playing" list exists in the data file, otherwise false.
+     * @return true if the player is in the "players-playing" list, otherwise false.
      * @throws IOException If an I/O error occurs while loading the hash map from the file.
      */
     public boolean isPlayerInList(Player player) throws IOException {
         HashMap<String, List<String>> map = loadHashMapFromFile();
         if (map.containsKey("players-playing")) {
-            return true;
+            return map.get("players-playing").contains(player.getUniqueId().toString());
         } else {
             return false;
         }

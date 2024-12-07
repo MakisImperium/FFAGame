@@ -10,6 +10,10 @@ import genz.maki.plugins.config.PlayerFile;
 import genz.maki.plugins.config.RoomConfig;
 import genz.maki.plugins.utils.WorldUtils;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 public class BattleBasis {
 
     private final Main main;
@@ -19,6 +23,7 @@ public class BattleBasis {
     private final PlayerFile playerFile;
 
     private final String WORLDNAME;
+    
 
     public BattleBasis(Main main, FFAConfig ffaConfig, RoomConfig roomConfig, WorldUtils worldUtils, PlayerFile playerFile) {
         this.main = main;
@@ -29,50 +34,41 @@ public class BattleBasis {
         WORLDNAME = this.ffaConfig.getWorld();
     }
 
-    public void joinToBattle(Player player) {
+    /**
+     * Allows a player to join the battle by teleporting them to a specified level,
+     * sending a confirmation message, updating room configurations, creating a player file
+     * if it does not exist, and equipping them with necessary battle items.
+     *
+     * @param player The player who intends to join the battle. This object contains
+     *               information needed to teleport the player, manage their settings,
+     *               and modify their inventory.
+     */
+    public void joinToBattle(Player player) throws IOException {
         if(this.worldUtils.isWorldLoaded()) {
             Level level = this.main.getServer().getLevelByName(WORLDNAME);
             player.teleport(level.getSafeSpawn());
 
-            player.sendMessage(TextFormat.GREEN + "You have joined the battle!");
+            player.sendMessage(main.getPrefix() + TextFormat.GREEN + "You have joined the battle!");
 
             this.roomConfig.addPlayerToRoom(player);
             this.playerFile.createPlayerFile(player);
-
-            giveItemsToBattle(player);
         }
     }
 
-    public void giveItemsToBattle(Player player) {
-
-        player.getInventory().clearAll();
-
-        Item sword = new Item(Item.DIAMOND_SWORD, 0, 1);
-        sword.setUnbreakable(true);
-        Item apple = new Item(Item.GOLDEN_APPLE, 0, 3);
-        Item diamondhelmet = new Item(Item.DIAMOND_HELMET, 0, 1).setUnbreakable(true);
-        Item diamondchestplate = new Item(Item.DIAMOND_CHESTPLATE, 0, 1).setUnbreakable(true);
-        Item diamondlegs = new Item(Item.DIAMOND_LEGGINGS, 0, 1).setUnbreakable(true);
-        Item diamondboots = new Item(Item.DIAMOND_BOOTS, 0, 1).setUnbreakable(true);
-
-        player.getInventory().addItem(sword);
-        player.getInventory().addItem(apple);
-
-        player.getInventory().setHelmet(diamondhelmet);
-        player.getInventory().setChestplate(diamondchestplate);
-        player.getInventory().setLeggings(diamondlegs);
-        player.getInventory().setBoots(diamondboots);
-
-        player.setMaxHealth(20);
-        player.setFoodEnabled(false);
-    }
-
-    public void leaveBattle(Player player) {
+    /**
+     * Removes the player from the battle, clears their inventory, teleports them to a safe spawn,
+     * and sends a message indicating they have left the battle.
+     *
+     * @param player the player who is leaving the battle. The player's inventory is cleared,
+     *               they are removed from the room configuration, and they are teleported to the server's default level safe spawn.
+     */
+    public void leaveBattle(Player player) throws IOException {
         player.getInventory().clearAll();
 
         this.roomConfig.removePlayerFromRoom(player);
 
         player.teleport(this.main.getServer().getDefaultLevel().getSafeSpawn());
-        player.sendMessage(TextFormat.RED + "You have left the battle!");
+        player.sendMessage(main.getPrefix() + TextFormat.RED + "You have left the battle!");
     }
+    
 }

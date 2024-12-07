@@ -12,6 +12,7 @@ import genz.maki.plugins.Main;
 import genz.maki.plugins.battle.BattleBasis;
 import genz.maki.plugins.config.PlayerFile;
 import genz.maki.plugins.config.RoomConfig;
+import genz.maki.plugins.kits.manager.KitsManager;
 
 import java.io.IOException;
 import java.util.Map;
@@ -20,15 +21,24 @@ public class FFADeathEvent implements Listener {
 
     private final RoomConfig config;
     private final PlayerFile playerFile;
-    private final BattleBasis battleBasis;
+    private final KitsManager kitsManager;
 
-    public FFADeathEvent(RoomConfig config, PlayerFile playerFile, BattleBasis battleBasis) {
+    public FFADeathEvent(RoomConfig config, PlayerFile playerFile, KitsManager kitsManager) {
         this.config = config;
         this.playerFile = playerFile;
-        this.battleBasis = battleBasis;
+        this.kitsManager = kitsManager;
     }
 
     
+    /**
+     * Handles the event triggered when a player dies in the game. It checks if the deceased
+     * player and the killer, if applicable, are part of the configured list of players. If so,
+     * it updates their respective kill and death counts, sends messages to both the deceased
+     * and the killer, and provides the killer with battle items.
+     *
+     * @param event The PlayerDeathEvent containing information about the player's death.
+     * @throws IOException If an I/O error occurs while accessing player data files.
+     */
     @EventHandler
     public void onDeath(PlayerDeathEvent event) throws IOException {
         Player deathPlayer = event.getEntity().getPlayer();
@@ -44,10 +54,11 @@ public class FFADeathEvent implements Listener {
                        playerFile.addKill(player);
 
                        player.sendTitle("", TextFormat.RED + "You have killed " + player.getName(), 2, 3, 2);
-                       player.sendMessage(TextFormat.GREEN + "You have killed " + player.getName());
+                       player.sendMessage(TextFormat.GREEN + "You have killed " + deathPlayer.getName());
                        deathPlayer.sendMessage(TextFormat.RED + "You have been killed by " + player.getName());
 
-                       battleBasis.giveItemsToBattle(player);
+                       String kitName = kitsManager.getPlayerKit(player);
+                       kitsManager.applyKit(player, kitName);
                    }
                }
             }
