@@ -39,6 +39,17 @@ public class PlayerFile {
     }
 
     /**
+     * Checks if a player file already exists.
+     *
+     * @param player The player whose file existence is being checked.
+     * @return true if the player's file exists, false otherwise.
+     */
+    public boolean doesPlayerFileExist(Player player) {
+        File myObj = new File(main.getDataFolder() + "/players/", player.getUniqueId().toString() + ".txt");
+        return myObj.exists();
+    }
+
+    /**
      * Generates a FileWriter for a given player. Writes initial player data to a file.
      *
      * @param player the player whose data will be written to the file
@@ -105,10 +116,6 @@ public class PlayerFile {
                         case "XP":
                             map.put(key, Integer.parseInt(value));
                             break;
-                        case "isRoom":
-                        case "hasFormOpen":
-                            map.put(key, Boolean.parseBoolean(value));
-                            break;
                         default:
                             map.put(key, value);
                             break;
@@ -154,8 +161,8 @@ public class PlayerFile {
         if (map.containsKey(key)) {
             return map.get(key);
         } else {
-            main.getLogger().error("Konnte kein bestimmter Key Wert ermittelt werden: " + key);
-            return 0; // Rückgabe eines Standardwerts, um NullPointerException zu vermeiden
+            main.getLogger().error("Unable to determine a specific key value: " + key);
+            return 0; // Return a default value to avoid NullPointerException
         }
     }
 

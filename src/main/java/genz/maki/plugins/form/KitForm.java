@@ -67,9 +67,9 @@ public class KitForm {
                 window.addButton(new ElementButton(kit));
             }
 
-            window.addButton(new ElementButton("Create New Kit"));
-            window.addButton(new ElementButton("Manage Kits"));
-            window.addButton(new ElementButton("BACK TO MENU"));
+            window.addButton(new ElementButton(TextFormat.GREEN + "Create New Kit"));
+            window.addButton(new ElementButton(TextFormat.YELLOW + "Manage Kits"));
+            window.addButton(new ElementButton(TextFormat.RED + "BACK TO MENU"));
             player.showFormWindow(window);
         } else {
             FormWindowSimple window = new FormWindowSimple("Select a Kit", "Choose a kit for the Battle");
@@ -105,8 +105,8 @@ public class KitForm {
      *
      * @param kitName the name of the kit to be managed, used to retrieve the relevant items
      *                and setup the form window for modification.
-     * @param player the player who is interacting with the kit form, for whom the form window
-     *               will be displayed and actions will be applied.
+     * @param player  the player who is interacting with the kit form, for whom the form window
+     *                will be displayed and actions will be applied.
      */
     public void manageKitForm(String kitName, Player player) throws IOException {
         List<Integer> kitItems = kitsManager.getKitItems(kitName);
@@ -125,6 +125,22 @@ public class KitForm {
         window.addButton(new ElementButton(TextFormat.YELLOW + "Change"));
         window.addButton(new ElementButton(TextFormat.RED + "Delete"));
         window.addButton(new ElementButton(TextFormat.GREEN + "Apply"));
+
+        player.showFormWindow(window);
+    }
+
+    /**
+     * Creates a form for managing an individual item in the specified kit.
+     *
+     * @param player   the player to whom the item management form will be shown
+     * @param itemName the name of the item to be managed
+     * @param kitName  the name of the kit containing the item
+     */
+    public void manageItemForm(Player player, String itemName, String kitName) {
+        FormWindowSimple window = new FormWindowSimple(kitName + " - " + itemName, "Manage the item in kit");
+
+        window.addButton(new ElementButton(TextFormat.RED + "Delete Item"));
+        window.addButton(new ElementButton(TextFormat.RED + "Back to Kit Manage"));
 
         player.showFormWindow(window);
     }

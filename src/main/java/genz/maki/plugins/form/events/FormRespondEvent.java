@@ -44,13 +44,14 @@ public class FormRespondEvent implements Listener {
     }
 
     /**
-     * Handles the player's form response events. This method is invoked when a player responds
-     * to a form presented within the game. It manages player actions based on the responses given
-     * in various form windows.
+     * Handles the response of a player to a form event. This method deals with different types
+     * of form windows such as simple and custom forms. Based on the form title and the button clicked
+     * by the player, various actions are performed including joining or leaving a battle, managing kits,
+     * and handling admin options.
      *
-     * @param event the PlayerFormRespondedEvent that encapsulates information about the form
-     *              response, including the player, the form window they responded to, and their response.
-     * @throws IOException if an input or output exception occurs while processing the form response.
+     * @param event the PlayerFormRespondedEvent that contains the player response and form data
+     * @throws IOException if there is an error related to input/output operations involving player
+     *                     data or configurations affecting the game
      */
 
     @EventHandler
@@ -83,21 +84,23 @@ public class FormRespondEvent implements Listener {
                     } else {
                         main.getLogger().warning("Unknown button action: " + button);
                     }
-                } else if(title.equalsIgnoreCase("Change a Kit")){
+                } else if (title.equalsIgnoreCase("Change a Kit")) {
                     String kitName = ((FormResponseSimple) event.getResponse()).getClickedButton().getText();
                     kitsManager.changePlayerKitFromList(player, kitName);
                     kitsManager.applyKit(player, kitName);
-                }else if (title.equalsIgnoreCase("FFA-Admin")) {
+                } else if (title.equalsIgnoreCase("FFA-Admin")) {
                     if (button.equals(TextFormat.RED + "KITS")) {
                         this.kitForm.showKitAdminForm(player);
                     } else if (button.equals("Create New Kit")) {
                         kitForm.createKitForm(player);
                     }
                 } else if (title.equalsIgnoreCase("Kits Admin")) {
-                    if (button.equals("Create New Kit")) {
+                    if (button.equals(TextFormat.GREEN + "Create New Kit")) {
                         kitForm.createKitForm(player);
-                    } else if (button.equals("Manage Kits")) {
+                    } else if (button.equals(TextFormat.YELLOW + "Manage Kits")) {
                         kitForm.manageKitsListForm(player);
+                    } else if (button.equals(TextFormat.RED + "BACK TO MENU")) {
+                        kitForm.showKitAdminForm(player);
                     }
                 } else if (title.equalsIgnoreCase("Manage all Kits")) {
                     kitForm.manageKitForm(button, player);
@@ -112,13 +115,31 @@ public class FormRespondEvent implements Listener {
                         kitsManager.removeKit(title, player);
                     } else if (button.equalsIgnoreCase(TextFormat.RED + "No")) {
                         kitForm.manageKitsListForm(player);
+                    } else {
+                        kitForm.manageItemForm(player, title, button);
+                        kitsManager.addPlayersEditItem(player, button);
+                        kitsManager.addPlayerKitName(player, title);
                     }
                 } else if (title.equalsIgnoreCase("Select a Kit")) {
                     String kitName = ((FormResponseSimple) event.getResponse()).getClickedButton().getText();
                     kitsManager.addPlayerToKitList(player, kitName);
                     kitsManager.applyKit(player, kitName);
+                } else if (title.equalsIgnoreCase(kitsManager.getPlayersEditItem(player) + " - " + kitsManager.getPlayerKitName(player))) {
+                    if (button.equalsIgnoreCase(TextFormat.RED + "Delete Item")) {
+                        kitsManager.removeItemFromKit(player, kitsManager.getPlayerKitName(player), kitsManager.getPlayersEditItem(player));
+
+                        kitsManager.removePlayerKitName(player);
+                        kitsManager.removePlayersEditItem(player);
+                    } else if (button.equalsIgnoreCase(TextFormat.RED + "Back to Kit Manage")) {
+                        kitForm.manageKitForm(kitsManager.getPlayerKitName(player), player);
+
+                        kitsManager.removePlayerKitName(player);
+                        kitsManager.removePlayersEditItem(player);
+                    } else {
+                        kitsManager.removePlayerKitName(player);
+                        kitsManager.removePlayersEditItem(player);
+                    }
                 }
-                
             }
         } else if (window instanceof FormWindowCustom) {
             String title = ((FormWindowCustom) window).getTitle();

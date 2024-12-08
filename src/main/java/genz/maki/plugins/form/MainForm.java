@@ -69,14 +69,19 @@ public class MainForm {
      * @throws IOException if an I/O error occurs during the retrieval of the player's statistics
      */
     public void sendProfilFrame(Player player) throws IOException {
-        FormWindowSimple profilframe = new FormWindowSimple(ffaConfig.getFormName(), "Here are your profile settings and statistics.");
-        
-        profilframe.setContent(TextFormat.LIGHT_PURPLE + "Current K/D:" + TextFormat.BLUE + " " + playerFile.getKillDeathRatio(player) + "\n"
-            + TextFormat.LIGHT_PURPLE + "Current Kills:" + TextFormat.BLUE + " " + String.valueOf(playerFile.getKills(player) + "\n")
-                + TextFormat.LIGHT_PURPLE + "Current Deaths:" + TextFormat.BLUE + " " + String.valueOf(playerFile.getDeaths(player))
-        );
-        profilframe.addButton(new ElementButton(TextFormat.RED + "Back"));
-        player.showFormWindow(profilframe);
+        if (playerFile.doesPlayerFileExist(player)) {
+            FormWindowSimple profilframe = new FormWindowSimple(ffaConfig.getFormName(), "Here are your profile settings and statistics.");
+
+            profilframe.setContent(TextFormat.LIGHT_PURPLE + "Current K/D:" + TextFormat.BLUE + " " + playerFile.getKillDeathRatio(player) + "\n"
+                    + TextFormat.LIGHT_PURPLE + "Current Kills:" + TextFormat.BLUE + " " + String.valueOf(playerFile.getKills(player) + "\n")
+                    + TextFormat.LIGHT_PURPLE + "Current Deaths:" + TextFormat.BLUE + " " + String.valueOf(playerFile.getDeaths(player))
+            );
+            profilframe.addButton(new ElementButton(TextFormat.RED + "Back"));
+            player.showFormWindow(profilframe);
+
+        } else {
+            player.sendMessage(main.getPrefix() + TextFormat.RED + "You don't have a profile yet! To do this, you'll need to take part in your first battle");
+        }
     }
 
     /**

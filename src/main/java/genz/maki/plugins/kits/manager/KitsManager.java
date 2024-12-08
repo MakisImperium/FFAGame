@@ -11,10 +11,7 @@ import genz.maki.plugins.Main;
 import genz.maki.plugins.battle.BattleBasis;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -23,14 +20,23 @@ public class KitsManager {
     private final Main plugin;
     private final BattleBasis battleBasis;
     private final String kitsFolder;
-    private final List<String> playersEditList = new ArrayList<>();
+    private final List<String> playersEditList;
     private final Map<String, String> playersChoosenKit;
+    
+    // Player with Item Name
+    private final Map<String, String> playersEditItemKit;
+
+    // Player with Kit Name
+    private final Map<String, String> playersEditItemKitName;
 
     public KitsManager(Main plugin, BattleBasis battleBasis) {
         this.plugin = plugin;
         this.battleBasis = battleBasis;
         this.kitsFolder = plugin.getDataFolder() + "/kits";
         playersChoosenKit = new HashMap<>();
+        playersEditItemKit = new HashMap<>();
+        playersEditList = new ArrayList<>();
+        playersEditItemKitName = new HashMap<>();
         createKitsFolderAndStandartKitFile();
     }
 
@@ -296,10 +302,10 @@ public class KitsManager {
     /**
      * Updates the kit items for a specified kit name by writing the player's current inventory items
      * to a corresponding kit file. The method first checks if the kit file exists, then clears existing
-     * items in the kit, and adds new items based on the player's inventory, excluding the last item.
+     * items in the kit, and adds new items based on the player's inventory.
      *
-     * @param kitName the name of the kit to be updated
-     * @param player the player whose inventory is used to update the kit items
+     * @param kitName  the name of the kit to be updated
+     * @param player   the player whose inventory is used to update the kit items
      * @param kitItems a list of existing kit items, which is modified to reflect the player's current inventory
      */
     private void updateKitItems(String kitName, Player player, List<Integer> kitItems) {
@@ -317,18 +323,30 @@ public class KitsManager {
             // Clear all existing items
             kitContents.put("items", "");
 
-            // Get player's current items
+            // Get player's current items & armor
+            
             List<Integer> playerItemIds = new ArrayList<>();
             player.getInventory().getContents().values().forEach(item -> playerItemIds.add(item.getId()));
+
+            List<Integer> armor = new ArrayList<>();
+
+            armor.add(player.getInventory().getHelmet().getId());
+            armor.add(player.getInventory().getChestplate().getId());
+            armor.add(player.getInventory().getLeggings().getId());
+            armor.add(player.getInventory().getBoots().getId());
+
+            // Check and remove elements from playerItemIds if they exist in armor
+            armor.forEach(id -> {
+                if (playerItemIds.contains(id)) {
+                    playerItemIds.remove(id);
+                }
+            });
 
             // Remove the last item if present
             List<String> distinctItemIds = playerItemIds.stream()
                     .distinct()
                     .map(String::valueOf)
                     .collect(Collectors.toCollection(ArrayList::new));
-            if (!distinctItemIds.isEmpty()) {
-                distinctItemIds.remove(distinctItemIds.size() - 1);
-            }
 
             // Avoid trailing comma by joining the list correctly
             kitContents.put("items", String.join(",", distinctItemIds));
@@ -348,23 +366,60 @@ public class KitsManager {
         }
         plugin.getLogger().info("Kit items updated: " + kitName);
     }
-    
 
     /**
-     * Sets a piece of armor by accepting an Item object and applying it through the provided setter function.
+     * Removes a specified item from a kit, identified by its name.
      *
-     * @param setter A Consumer functional interface that specifies how the Item object will be set
-     *               on the player's inventory. This could be a method reference to set a specific piece of armor,
-     *               such as a helmet, chestplate, leggings, or boots.
-     * @param itemId An Integer representing the unique identifier of the item to be set as armor.
-     *               If the itemId is not null, it will be used to retrieve the corresponding Item object.
+     * @param player   the player requesting the item removal
+     * @param itemName the name of the item to be removed from the kit
+     * @param kitName  the name of the kit from which the item should be removed
      */
-    private void setArmorPiece(Consumer<Item> setter, Integer itemId) {
-        if (itemId != null) {
-            setter.accept(Item.get(itemId));
+    public void removeItemFromKit(Player player, String kitName, String itemName) {
+        List<Integer> kitItems = getKitItems(kitName);
+        Item item = Item.fromString(itemName);
+        int itemId = item.getId();
+
+        plugin.getLogger().info("Item " + itemName + " found in kit " + kitName + ".");
+
+        if (kitItems.remove((Integer) itemId)) {
+            List<String> keys = List.of("items", "helmet", "chestplate", "leggings", "boots");
+            File kitFile = new File(kitsFolder, kitName + ".txt");
+            try (BufferedReader reader = new BufferedReader(new FileReader(kitFile))) {
+                Map<String, String> kitContents = reader.lines()
+                        .map(line -> line.split(": ", 2))
+                        .filter(parts -> parts.length == 2)
+                        .collect(Collectors.toMap(parts -> parts[0].trim(), parts -> parts[1].trim()));
+
+                for (String key : keys) {
+                    if (kitContents.containsKey(key)) {
+                        if ("items".equals(key)) {
+                            String items = kitContents.get(key);
+                            List<Integer> itemList = new ArrayList<>(List.of(Arrays.asList(items.split(",")).stream().map(String::trim).map(Integer::parseInt).toArray(Integer[]::new)));
+                            itemList.remove((Integer) itemId);
+                            kitContents.put(key, itemList.toString().replaceAll("[\\[\\] ]", ""));
+                        } else {
+                            if (Integer.parseInt(kitContents.get(key).trim()) == itemId) {
+                                kitContents.put(key, "0");
+                            }
+                        }
+                    }
+                }
+
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(kitFile))) {
+                    for (Map.Entry<String, String> entry : kitContents.entrySet()) {
+                        writer.write(entry.getKey() + ": " + entry.getValue() + "\n");
+                    }
+                }
+
+                plugin.getLogger().info("Item " + itemName + " removed from kit " + kitName + ".");
+                player.sendMessage(plugin.getPrefix() + TextFormat.RED + "Item: " + getPlayersEditItem(player) + " has been removed from " + getPlayerKitName(player) + " kit.");
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to remove item from kit: " + e.getMessage());
+            }
+        } else {
+            plugin.getLogger().info("Item not present in kit.");
         }
     }
-
 
     /**
      * Adds a player to the edit list if they are not already present in it.
@@ -467,6 +522,69 @@ public class KitsManager {
      */
     public String getPlayerKit(Player player) {
         return this.playersChoosenKit.get(player.getUniqueId().toString());
+    }
+
+    /**
+     * Retrieves the editing item associated with the specified player.
+     *
+     * @param player the Player object representing the player whose edit item is to be retrieved.
+     * @return a String representing the edit item of the player, or null if no item is associated.
+     */
+    public String getPlayersEditItem(Player player) {
+        return playersEditItemKit.get(player.getUniqueId().toString());
+    }
+
+    /**
+     * Assigns a specific item to a player for editing, storing the mapping between
+     * the player's unique identifier and the item in an internal map.
+     *
+     * @param player the Player object representing the player who is editing the item.
+     * @param item the item assigned to the player for editing.
+     */
+    public void addPlayersEditItem(Player player, String item) {
+        playersEditItemKit.put(player.getUniqueId().toString(), item);
+    }
+
+    /**
+     * Removes a player from the list of players editing items.
+     *
+     * @param player the Player object representing the player to be removed from the edit item list.
+     *               The player's unique identifier (UUID) is used to reference their entry in the list.
+     */
+    public void removePlayersEditItem(Player player) {
+        playersEditItemKit.remove(player.getUniqueId().toString());
+    }
+
+    /**
+     * Retrieves the kit name associated with the specified player.
+     *
+     * @param player the Player object representing the player whose kit name is to be retrieved.
+     * @return the name of the kit associated with the player, or null if no kit name is associated with the player.
+     */
+    public String getPlayerKitName(Player player) {
+        return playersEditItemKitName.get(player.getUniqueId().toString());
+    }
+
+    /**
+     * Associates a kit name with the specified player. This method updates the internal mapping
+     * to reflect the kit name chosen or associated with the player.
+     *
+     * @param player the Player object representing the individual whose kit name is to be set or updated.
+     * @param kitName the name of the kit to be associated with the player.
+     */
+    public void addPlayerKitName(Player player, String kitName) {
+        playersEditItemKitName.put(player.getUniqueId().toString(), kitName);
+    }
+
+    /**
+     * Removes the kit name associated with a specified player from the internal mapping,
+     * effectively disassociating the player from any currently selected kit name.
+     *
+     * @param player the Player object representing the player whose kit name is to be removed.
+     *               The player's unique identifier (UUID) is used to manage their entry in the map.
+     */
+    public void removePlayerKitName(Player player) {
+        playersEditItemKitName.remove(player.getUniqueId().toString());
     }
 
 }

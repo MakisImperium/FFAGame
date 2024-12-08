@@ -52,7 +52,7 @@ public class RoomConfig {
 
                 plugin.getLogger().notice("chache.txt has been created!");
             } else {
-                System.out.println("Chache loading.");
+                plugin.getLogger().info("Chache loading.");
             }
         } catch (IOException e) {
             System.out.println("An error occurred.");
@@ -143,7 +143,7 @@ public class RoomConfig {
         try {
             saveHashMapToFile(map);
         } catch (IOException e) {
-            plugin.getLogger().error("Fehler beim Speichern der Datei: " + e.getMessage());
+            plugin.getLogger().error("Error saving the file: " + e.getMessage());
         }
     }
 
@@ -168,12 +168,11 @@ public class RoomConfig {
         if (players != null && players.contains(playerToRemove)) {
             players.remove(playerToRemove);
         }
-        map.put("players-playing", players); // Aktualisiere die Liste, auch wenn sie leer ist
+        map.put("players-playing", players); // Update the list, even if it is empty
         try {
             saveHashMapToFile(map);
-            plugin.getLogger().info("Player " + playerToRemove + " removed from room.");
         } catch (IOException e) {
-            plugin.getLogger().error("Fehler beim Speichern der Datei: " + e.getMessage());
+            plugin.getLogger().error("Error saving the file: " + e.getMessage());
         }
 }
 
