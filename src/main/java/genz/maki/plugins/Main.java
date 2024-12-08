@@ -58,7 +58,7 @@ public class Main extends PluginBase {
     public void onEnable() {
         prefix = TextFormat.WHITE + "[" + TextFormat.GOLD + "FFA" + TextFormat.WHITE + "] ";
 
-        this.getLogger().info(getPrefix() + TextFormat.GREEN + "Plugin enabled");
+        this.getLogger().info(TextFormat.GREEN + "Plugin enabled successfully! Version " + this.getDescription().getVersion() + "v");
 
         this.saveDefaultConfig();
         config = new Config(this.getDataFolder() + "/config.yml", Config.YAML);
