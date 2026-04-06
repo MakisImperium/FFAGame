@@ -1,0 +1,100 @@
+[CENTER][SIZE=6][B]FFAGameV2[/B][/SIZE]
+[I]Professional Multi-Arena FFA for Nukkit/Cloudburst[/I][/CENTER]
+
+[HR][/HR]
+
+[B]FFAGameV2[/B] is a full rewrite of the original FFA concept with production-grade architecture:
+[LIST]
+[*]Real multi-arena support
+[*]Per-arena world binding
+[*]Safe-zone system with simple 2-click placement mode
+[*]Form-only UX (no subcommand complexity)
+[*]Professional kit system (snapshot, item manager, armor manager)
+[*]Arena-only scoreboard with player toggle
+[*]EN/DE language support
+[*]UUID-based player profile persistence
+[*]MySQL (strict) or JSON storage backend
+[/LIST]
+
+[B]Highlights[/B]
+[LIST]
+[*]Modern service-layer architecture under [ICODE]makisimperium.ffa[/ICODE]
+[*]No YAML-based gameplay data storage
+[*]All arena/kit/config language data in JSON
+[*]Clean form routing with consistent back-navigation
+[*]In-game admin tools for arenas, zones, safe-zones and kits
+[/LIST]
+
+[B]Database Outage Protection (MySQL Mode)[/B]
+
+If [ICODE]storageBackend[/ICODE] is set to [ICODE]MYSQL[/ICODE] and the database becomes unreachable:
+[LIST=1]
+[*]Stats service is marked unavailable immediately.
+[*]All arenas are forced to Offline.
+[*]Active arena sessions are ended safely.
+[*]Reconnect is attempted [B]3 times[/B] in [B]15-second intervals[/B].
+[*]If all attempts fail, plugin advises switching to JSON and disables itself.
+[/LIST]
+
+If MySQL reconnects in time, stats are restored. Arenas remain offline until manually set live by admin.
+
+[B]Form UX (No Subcommands)[/B]
+[LIST]
+[*][ICODE]/ffa[/ICODE] outside arena: Arena / Stats / Settings
+[*][ICODE]/ffa[/ICODE] inside arena: Leave Arena / Kits / Settings
+[*][ICODE]/ffaadmin[/ICODE]: Admin Console forms
+[/LIST]
+
+[B]Safe-Zone Setup[/B]
+[LIST=1]
+[*]Open admin zone tools and start 2-click mode.
+[*]Click block #1.
+[*]Click block #2.
+[*]Safe-zone is auto-saved.
+[/LIST]
+
+[B]Permissions[/B]
+[LIST]
+[*][ICODE]ffa.admin[/ICODE] (default: op)
+[/LIST]
+
+[B]Configuration[/B]
+[CODE=json]{
+  "storageBackend": "MYSQL",
+  "database": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "ffa",
+    "username": "root",
+    "password": "change-me",
+    "table": "ffa_player_profiles",
+    "useSsl": false,
+    "allowPublicKeyRetrieval": true
+  },
+  "scoreboard": {
+    "enabledByDefault": true,
+    "updateIntervalTicks": 20
+  }
+}[/CODE]
+
+[B]Build Output[/B]
+[LIST]
+[*]Maven package target: [ICODE]target/FFAGameV2.jar[/ICODE]
+[/LIST]
+
+[B]Technical Namespace[/B]
+[CODE]
+makisimperium.ffa
+[/CODE]
+
+[B]Release Cleanup Included[/B]
+[LIST]
+[*]Package migrated to [ICODE]makisimperium.ffa[/ICODE]
+[*]Bootstrap class renamed to [ICODE]FFABootstrap[/ICODE]
+[*]Artifact output standardized to [ICODE]FFAGameV2.jar[/ICODE]
+[*]UI now displays names instead of internal IDs
+[/LIST]
+
+[HR][/HR]
+
+[CENTER][B]FFAGameV2[/B] is built for stable production FFA gameplay with clean admin control and expandable architecture.[/CENTER]

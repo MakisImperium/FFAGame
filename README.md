@@ -1,37 +1,152 @@
-![Logo](https://cloudburstmc.org/attachments/ffa-png.2033/)
+# FFAGameV2
 
-# FFAPlugin for Minecraft - An Epic Battlefield for Everyone!
+Professional multi-arena FFA minigame plugin for Nukkit/Cloudburst servers.  
+This project is a full rewrite with clean architecture, form-only UX, JSON-first content storage, and optional MySQL profile storage.
 
-Experience the ultimate Free-For-All (FFA) action with our stunning FFA Plugin for Minecraft! Dive into thrilling battles where there's only one goal: Survive and dominate the battlefield. Perfect for all adventurers and warriors seeking glory and honor.
+## Highlights
 
-## Features
-- **Player Statistics:** Track your kills, deaths, and kill/death ratio. Are you the best fighter on the server?
+- Full multi-arena system with per-arena world binding.
+- Arena-safe zones with 2-click selection mode (auto-save).
+- Form-only UX (`/ffa`, `/ffaadmin`) with strict sector routing.
+- Advanced kit system (snapshot, item manager, armor manager, ordered remove flow).
+- Live arena scoreboard (arena-only, per-player toggle, EN/DE language support).
+- Profile/stat persistence by UUID with:
+  - `MYSQL` (recommended for production), or
+  - `JSON` fallback/alternative.
+- Runtime database outage protection:
+  - stats service goes unavailable,
+  - all arenas forced offline,
+  - 3 reconnect attempts in 15s intervals,
+  - plugin disables itself if DB cannot recover.
 
-- **Interactive Forms:** User-friendly menus allow you to quickly join battles, manage your profile, and more.
+## Runtime Behavior
 
-- **More Features coming soon like (Kits, 1vs1, Rounds, ..)**
+### Form-Only Navigation
+
+- No subcommand tree.
+- Player UI is fully form-driven.
+- `/ffa`:
+  - outside arena: Arena / Stats / Settings.
+  - inside arena: Leave Arena / Kits / Settings.
+- `/ffaadmin`: Admin forms only (OP or `ffa.admin` permission).
+
+### Arena Rules
+
+- Join is only possible when arena status is `Live`.
+- Block break/place/drop are blocked in arena.
+- Safe-zone blocks combat and damage interactions.
+- Safe-zone setup:
+  1. Start 2-click mode in admin forms.
+  2. Click block #1.
+  3. Click block #2.
+  4. Zone is stored automatically.
+
+### Stats + Database Outage Mode (MySQL)
+
+If `storageBackend` is `MYSQL` and the connection drops:
+
+1. Stats/service is marked unavailable immediately.
+2. All arenas are forced to `Offline`.
+3. Active arena sessions are ended.
+4. Reconnect is attempted 3 times every 15 seconds.
+5. If still unreachable, plugin logs recommendation to switch to `JSON` and disables itself.
+
+When MySQL recovers before attempt 3, stats service is restored.  
+Arenas stay offline until an admin re-enables them.
+
+## Architecture
+
+Base package:
+
+```text
+makisimperium.ffa
+```
+
+Core modules:
+
+- `arena`: arena models, persistence, catalog/session services.
+- `kit`: kit models, JSON repository, selection/application/registry services.
+- `player`: profile model, preferences, stats, repository abstractions.
+- `ui.form`: complete form routing and flows.
+- `listener`: game protection, lifecycle, form interaction, zone placement.
+- `scoreboard`: arena-only scoreboard service.
+- `i18n`: JSON language bundle loading and key resolution.
+- `config`: JSON config model and loader.
+
+## Storage Model
+
+- No YAML storage for runtime data systems.
+- JSON used for:
+  - config,
+  - arenas,
+  - kits,
+  - language bundles,
+  - optional JSON player profiles.
+- UUID is the canonical key for player persistence.
+- Player names are display-only.
+
 ## Configuration
 
-```sprache
-ffa-world: world #Choose a World
-welcome-message: Hello and Welcome to our fresh FreeForAll Gamemode. Good Luck!
-form-name: FFA Menu
-mainframe-description: Choose any button
- ```
-Customize the plugin to suit your server's needs with simple configuration options. Here's a quick overview of the key settings:
+`plugins/FFAGameV2/config.json`:
 
-***ffa-world:*** Choose the world where the battles will take place.
+```json
+{
+  "storageBackend": "MYSQL",
+  "database": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "ffa",
+    "username": "root",
+    "password": "change-me",
+    "table": "ffa_player_profiles",
+    "useSsl": false,
+    "allowPublicKeyRetrieval": true
+  },
+  "scoreboard": {
+    "enabledByDefault": true,
+    "updateIntervalTicks": 20
+  }
+}
+```
 
-***welcome-message:***  A warm welcome message for all players joining the game.
+### Storage Backend Options
 
-***form-name:***  The name of the main form menu.
+- `MYSQL`: strict DB mode with outage handling and reconnect policy.
+- `JSON`: no external DB dependency.
 
-***mainframe-description:*** A brief description for the main form menu.
+If MySQL is not configured, plugin informs and uses JSON storage.
 
-## Conclusion
+## Commands
 
-Get ready for an epic adventure and show off your skills in Free-For-All combat! With our FFA Plugin for Minecraft, you'll experience the action up close and always be at the center of the battle. Download the plugin today and become the invincible warrior on your server!
+- `/ffa` - Open player menu (forms).
+- `/ffaadmin` - Open admin console (forms).
 
----
-***Experience the ultimate FFA adventure and become a legend!***
-___
+## Permissions
+
+- `ffa.admin` (default: op)
+
+## Build
+
+Maven package output is configured as:
+
+```text
+target/FFAGameV2.jar
+```
+
+Build command:
+
+```bash
+mvn clean package
+```
+
+## Release Notes (Current)
+
+- Package namespace migrated to `makisimperium.ffa`.
+- Bootstrap class renamed to `FFABootstrap`.
+- Maven artifact cleaned and output jar standardized to `FFAGameV2.jar`.
+- UI displays arena/kit names instead of internal IDs.
+- Localization auto-persists discovered translation keys into `lang/en.json` and `lang/de.json`.
+
+## License
+
+Private project unless explicitly licensed otherwise by the owner.

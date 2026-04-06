@@ -1,6 +1,10 @@
-name: FFA
-version: "1.2.0"
+name: FFAGameV2
+version: "2.0.0"
 api: ["1.1.0"]
-author: Maki
-description: Test
-main: genz.maki.plugins.Main
+author: MakisImperium
+description: Professional multi-arena FFA minigame with JSON or MySQL profile storage
+main: makisimperium.ffa.FFABootstrap
+permissions:
+  ffa.admin:
+    default: op
+    description: Allows administration of arenas and kits
