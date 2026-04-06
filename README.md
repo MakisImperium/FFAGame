@@ -146,7 +146,3 @@ mvn clean package
 - Maven artifact cleaned and output jar standardized to `FFAGameV2.jar`.
 - UI displays arena/kit names instead of internal IDs.
 - Localization auto-persists discovered translation keys into `lang/en.json` and `lang/de.json`.
-
-## License
-
-Private project unless explicitly licensed otherwise by the owner.
